@@ -29,15 +29,16 @@ class OdometryPublisher:
 
         ######### Your code starts here #########
         # TurtleBot3 Burger parameters from manual (https://emanual.robotis.com/docs/en/platform/turtlebot3/overview/)
-        self.TICK_TO_RAD =
-        self.wheel_radius =
-        self.wheel_separation =
+        self.TICK_TO_RAD = 0.001533981
+        self.wheel_radius = 33 / 1000.0 
+        self.wheel_separation = 160 / 1000.0
         ######### Your code ends here #########
 
         self.current_time = rospy.Time.now()
         self.last_time = rospy.Time.now()
 
     def sensor_callback(self, msg):
+        print("callback called")
         self.left_encoder = msg.left_encoder
         self.right_encoder = msg.right_encoder
 
@@ -56,6 +57,23 @@ class OdometryPublisher:
 
         ######### Your code starts here #########
         # add odometry equations to calculate robot's self.x, self.y, self.theta given encoder values
+        phi_r = (self.right_encoder - self.last_right_encoder) * self.TICK_TO_RAD
+        phi_l = (self.left_encoder - self.last_left_encoder) * self.TICK_TO_RAD
+        self.last_left_encoder = self.left_encoder
+        self.last_right_encoder = self.right_encoder
+
+        delta_r = phi_r * self.wheel_radius
+        delta_l = phi_l * self.wheel_radius
+
+        delta_s = (delta_r + delta_l) / 2.0
+        delta_theta = (delta_r - delta_l) / self.wheel_separation
+
+        self.x = self.x + (delta_s * math.cos(self.theta))
+        self.y = self.y + (delta_s * math.sin(self.theta))
+        self.theta = self.theta + delta_theta
+
+        print(delta_s, "delta s")
+        print(phi_l, "phi l")
 
         ######### Your code ends here #########
 
